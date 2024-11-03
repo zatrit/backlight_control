@@ -9,16 +9,16 @@ max_brightness = $(shell cat $(vendor_backlight_dir)/max_brightness)
 DEFINES += -D BRIGHTNESS_FILE=\"$(vendor_backlight_dir)/brightness\"
 DEFINES += -D MAX_BRIGHTNESS=$(max_brightness)
 
-all: backlight_control
+all: backlightctl
 
 %: %.c
 	$(CC) $(CFLAGS) $(DEFINES) $< -o $@
 
 clean:
-	rm -f backlight_control
+	rm -f backlightctl
 
-install: backlight_control
+install: backlightctl
 	install -D -m 4755 -o root -g root $< $(DESTDIR)$(prefix)/bin/$<
 
 uninstall:
-	rm -f $(DESTDIR)$(prefix)/bin/backlight_control
+	rm -f $(DESTDIR)$(prefix)/bin/backlightctl
