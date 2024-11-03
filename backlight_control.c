@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 /**
  * A program to control the backlight brightness.
@@ -13,69 +14,86 @@
 #define MIN(a, b) ((a < b) ? a : b)
 
 void usage(char *name) {
-	printf(
-		"Usage: %1$s [+|-]<value>\n\n"
-		"Examples:\n"
-		"\t%1$s +10\n"
-		"\t%1$s -10\n"
-		"\t%1$s 50\n",
-		name
-	);
+  printf("Usage: %1$s [+|-]<value>\n\n"
+         "Examples:\n"
+         "\t%1$s +10\n"
+         "\t%1$s -10\n"
+         "\t%1$s 50\n",
+         name);
+}
+
+void print_current_brightness() {
+  FILE *fp = fopen(BRIGHTNESS_FILE, "r");
+  if (!fp) {
+    fprintf(stderr, "failed to open %sn", BRIGHTNESS_FILE);
+    exit(EXIT_FAILURE);
+  }
+
+  float brightness_value;
+  fscanf(fp, "%e", &brightness_value);
+  fclose(fp);
+
+  printf("%.0f", brightness_value);
 }
 
 int main(int argc, char **argv) {
-	if (argc != 2) {
-		usage(argv[0]);
+  if (argc != 2) {
+    usage(argv[0]);
 
-		return EXIT_FAILURE;
-	}
+    return EXIT_FAILURE;
+  }
 
-	char *endptr;
+  if (strcmp(argv[1], "--current") == 0 || strcmp(argv[1], "-c") == 0) {
+    print_current_brightness();
+    return EXIT_SUCCESS;
+  }
 
-	long int value = strtol(argv[1], &endptr, 10);
+  char *endptr;
 
-	if (endptr == argv[1]) {
-		fputs("brightness value must be an integer\n", stderr);
+  long int value = strtol(argv[1], &endptr, 10);
 
-		return EXIT_FAILURE;
-	}
+  if (endptr == argv[1]) {
+    fputs("brightness value must be an integer\n", stderr);
 
-	if (!((value < 0 ? value *= -1 : value) >= 1 && value <= 100)) {
-		fputs("brightness value must be between 1 and 100 (inclusively)\n", stderr);
+    return EXIT_FAILURE;
+  }
 
-		return EXIT_FAILURE;
-	}
+  if (!((value < 0 ? value *= -1 : value) >= 1 && value <= 100)) {
+    fputs("brightness value must be between 1 and 100 (inclusively)\n", stderr);
 
-	FILE *fp;
+    return EXIT_FAILURE;
+  }
 
-	if (!(fp = fopen(BRIGHTNESS_FILE, "r+"))) {
-		fprintf(stderr, "failed to open %s\n", BRIGHTNESS_FILE);
+  FILE *fp;
 
-		return (EXIT_FAILURE);
-	}
+  if (!(fp = fopen(BRIGHTNESS_FILE, "r+"))) {
+    fprintf(stderr, "failed to open %s\n", BRIGHTNESS_FILE);
 
-	float brightness_value;
+    return (EXIT_FAILURE);
+  }
 
-	fscanf(fp, "%e", &brightness_value);
+  float brightness_value;
 
-	switch (argv[1][0]) {
-		case '+':
-			brightness_value += MAX_BRIGHTNESS * ((float)value / 100.0);
+  fscanf(fp, "%e", &brightness_value);
 
-			break;
-		case '-':
-			brightness_value -= MAX_BRIGHTNESS * ((float)value / 100.0);
+  switch (argv[1][0]) {
+  case '+':
+    brightness_value += MAX_BRIGHTNESS * ((float)value / 100.0);
 
-			break;
-		default:
-			brightness_value = MAX_BRIGHTNESS * ((float)value / 100.0);
-	}
+    break;
+  case '-':
+    brightness_value -= MAX_BRIGHTNESS * ((float)value / 100.0);
 
-	brightness_value = MIN(brightness_value, MAX_BRIGHTNESS);
-	brightness_value = MAX(brightness_value, MIN_BRIGHTNESS);
+    break;
+  default:
+    brightness_value = MAX_BRIGHTNESS * ((float)value / 100.0);
+  }
 
-	fprintf(fp, "%.0f", brightness_value);
-	fclose(fp);
+  brightness_value = MIN(brightness_value, MAX_BRIGHTNESS);
+  brightness_value = MAX(brightness_value, MIN_BRIGHTNESS);
 
-	return EXIT_SUCCESS;
+  fprintf(fp, "%.0f", brightness_value);
+  fclose(fp);
+
+  return EXIT_SUCCESS;
 }
