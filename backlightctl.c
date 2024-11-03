@@ -33,7 +33,8 @@ void print_current_brightness() {
   fscanf(fp, "%e", &brightness_value);
   fclose(fp);
 
-  printf("%.0f", brightness_value);
+  float brightness_percentage = (brightness_value / MAX_BRIGHTNESS) * 100;
+  printf("%.0f\n", brightness_percentage);
 }
 
 int main(int argc, char **argv) {
